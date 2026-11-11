@@ -2118,7 +2118,7 @@ dialog.lightbox-dialog img {
 
   .brand-logo {
     gap: 0.5rem;
-    min-width: 0;
+    flex-shrink: 0;
   }
 
   .brand-mark {

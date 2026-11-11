@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="styles.css?v=3" />
+  <link rel="stylesheet" href="styles.css?v=4" />
 </head>
 <body>
   <div class="scroll-progress-bar" id="scrollProgressBar" aria-hidden="true"></div>
@@ -34,20 +34,24 @@
       </nav>
 
       <div class="nav-actions">
-        <button type="button" id="openWebhookModalBtn" class="btn btn-outline btn-sm">
-          ⚙️ Integrasi Google Sheets / Cloud
+        <button type="button" id="exportCsvBtn" class="btn btn-gold btn-sm">
+          📥 Export CSV
         </button>
-        <button type="button" id="exportCsvBtn" class="btn btn-primary btn-sm">
-          📥 Export Excel / CSV
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu" aria-expanded="false">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
         </button>
       </div>
     </div>
   </header>
 
   <!-- Main Admin Section -->
-  <main class="section" style="padding-top: 7.5rem;">
+  <main class="section" style="padding-top: 6.5rem;">
     <div class="container">
-      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1rem; margin-bottom: 2rem;">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1.25rem; margin-bottom: 2rem;">
         <div>
           <span class="eyebrow">Sistem Manajemen Data Pendaftar</span>
           <h1 class="section-title" style="text-align: left; margin-bottom: 0.25rem; font-size: clamp(2rem, 3.5vw, 2.8rem);">
@@ -58,12 +62,15 @@
           </p>
         </div>
 
-        <div style="display: flex; gap: 0.65rem; flex-wrap: wrap;">
-          <button type="button" id="seedDemoDataBtn" class="btn btn-outline btn-sm">
-            🔄 Reset Contoh Data
-          </button>
+        <div style="display: flex; gap: 0.65rem; flex-wrap: wrap; width: 100%; max-width: 100%;">
           <button type="button" id="openManualAddModalBtn" class="btn btn-gold btn-sm">
             ＋ Input Booking Manual (Walk-in / WA)
+          </button>
+          <button type="button" id="openWebhookModalBtn" class="btn btn-outline btn-sm">
+            ⚙️ Integrasi Google Sheets / Cloud
+          </button>
+          <button type="button" id="seedDemoDataBtn" class="btn btn-outline btn-sm">
+            🔄 Reset Contoh Data
           </button>
         </div>
       </div>
