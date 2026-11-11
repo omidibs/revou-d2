@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard Reservasi — Reve Space Venue & Eatery</title>
+  <meta name="description" content="Panel Admin untuk mengelola data pendaftar reservasi wedding, event, survey lokasi, dan meja eatery di Reve Space Jakarta Selatan." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="scroll-progress-bar" id="scrollProgressBar" aria-hidden="true"></div>
+
+  <!-- Navbar -->
+  <header class="navbar scrolled" id="mainNavbar">
+    <div class="container navbar-inner">
+      <a href="index.html" class="brand-logo">
+        <div class="brand-mark">R</div>
+        <div class="brand-text">
+          <span class="brand-name">REVE SPACE</span>
+          <span class="brand-tagline">Admin Panel · Manajemen Reservasi</span>
+        </div>
+      </a>
+
+      <nav class="nav-links" id="navLinks">
+        <a href="index.html">Lihat Landing Page</a>
+        <a href="booking.html">Halaman Form Booking</a>
+        <a href="admin.html" class="active">Dashboard Pendaftar</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button type="button" id="openWebhookModalBtn" class="btn btn-outline btn-sm">
+          ⚙️ Integrasi Google Sheets / Cloud
+        </button>
+        <button type="button" id="exportCsvBtn" class="btn btn-primary btn-sm">
+          📥 Export Excel / CSV
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Admin Section -->
+  <main class="section" style="padding-top: 7.5rem;">
+    <div class="container">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1rem; margin-bottom: 2rem;">
+        <div>
+          <span class="eyebrow">Sistem Manajemen Data Pendaftar</span>
+          <h1 class="section-title" style="text-align: left; margin-bottom: 0.25rem; font-size: clamp(2rem, 3.5vw, 2.8rem);">
+            Dashboard Reservasi <em>Reve Space</em>
+          </h1>
+          <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            Kelola seluruh data pendaftar Wedding, Event, Eatery, &amp; Survey. Ubah status ke <strong>Confirmed (DP Masuk)</strong> untuk otomatis mengunci tanggal di kalender halaman Booking.
+          </p>
+        </div>
+
+        <div style="display: flex; gap: 0.65rem; flex-wrap: wrap;">
+          <button type="button" id="seedDemoDataBtn" class="btn btn-outline btn-sm">
+            🔄 Reset Contoh Data
+          </button>
+          <button type="button" id="openManualAddModalBtn" class="btn btn-gold btn-sm">
+            ＋ Input Booking Manual (Walk-in / WA)
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div class="admin-stats-grid">
+        <div class="admin-stat-card">
+          <span>Total Pendaftar Masuk</span>
+          <strong id="statTotalCount">0</strong>
+        </div>
+        <div class="admin-stat-card">
+          <span>Menunggu Konfirmasi (Pending)</span>
+          <strong id="statPendingCount" style="color: #B45309;">0</strong>
+        </div>
+        <div class="admin-stat-card">
+          <span>Terkonfirmasi / DP Masuk</span>
+          <strong id="statConfirmedCount" style="color: #047857;">0</strong>
+        </div>
+        <div class="admin-stat-card">
+          <span>Estimasi Nilai Reservasi</span>
+          <strong id="statTotalRevenue" style="color: var(--accent-gold);">Rp 0</strong>
+        </div>
+      </div>
+
+      <!-- Search & Filter Toolbar -->
+      <div class="admin-toolbar">
+        <div class="admin-filters">
+          <input
+            type="search"
+            id="adminSearchInput"
+            class="form-control"
+            placeholder="Cari nama pemesan, kode RV-2026-..., atau nomor WA..."
+            style="max-width: 340px;"
+          />
+
+          <select id="adminFilterStatus" class="form-control" style="max-width: 210px;">
+            <option value="all">Semua Status</option>
+            <option value="Pending">⏳ Menunggu Konfirmasi</option>
+            <option value="Confirmed">✅ Confirmed / DP Masuk</option>
+            <option value="Completed">🎉 Selesai</option>
+            <option value="Cancelled">❌ Dibatalkan</option>
+          </select>
+
+          <select id="adminFilterCategory" class="form-control" style="max-width: 220px;">
+            <option value="all">Semua Kategori</option>
+            <option value="Wedding & Private Event">💍 Wedding &amp; Event</option>
+            <option value="Reservasi Meja Eatery Harian">🍽️ Meja Eatery Harian</option>
+            <option value="Survey Lokasi & Food Tasting">🌿 Survey &amp; Food Tasting</option>
+          </select>
+        </div>
+
+        <div style="font-size: 0.82rem; color: var(--text-muted);">
+          Sinkronisasi: <strong id="syncModeIndicator" style="color: var(--accent-forest);">Browser LocalStorage + WhatsApp</strong>
+        </div>
+      </div>
+
+      <!-- Data Table -->
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Kode &amp; Tgl Input</th>
+              <th>Pemesan &amp; Kontak</th>
+              <th>Kategori &amp; Paket</th>
+              <th>Jadwal Acara &amp; Area</th>
+              <th>Tamu &amp; Estimasi Biaya</th>
+              <th>Status Reservasi</th>
+              <th>Aksi Admin</th>
+            </tr>
+          </thead>
+          <tbody id="adminTableBody">
+            <!-- Populated dynamically by script.js -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal Integrasi Cloud / Google Sheets Webhook -->
+  <dialog class="modal-dialog" id="webhookConfigModal">
+    <div class="modal-body">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <span class="eyebrow" style="margin-bottom: 0;">Integrasi Database / Google Sheets</span>
+        <button type="button" id="closeWebhookModalBtn" class="cal-nav-btn">✕</button>
+      </div>
+
+      <h3 style="font-family: var(--font-serif); font-size: 1.85rem; margin-bottom: 0.5rem;">
+        Ke Mana Data Reservasi Masuk?
+      </h3>
+      <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 1rem;">
+        Website ini mendukung <strong>3 jalur penyimpanan data pendaftar</strong> sekaligus:
+      </p>
+
+      <ol style="font-size: 0.86rem; color: var(--text-primary); padding-left: 1.2rem; display: grid; gap: 0.6rem; margin-bottom: 1.25rem;">
+        <li>
+          <strong>Dashboard Admin Lokal (<a href="admin.html" style="text-decoration: underline;">admin.html</a>):</strong> Setiap form yang diisi langsung tercatat di tabel halaman ini dan bisa di-export ke <strong>Excel (`.csv`)</strong>.
+        </li>
+        <li>
+          <strong>WhatsApp Resmi (0878-2428-0277):</strong> Saat tamu klik konfirmasi, detail lengkap otomatis terkirim ke WhatsApp Admin Reve Space.
+        </li>
+        <li>
+          <strong>Google Sheets / Webhook Cloud (Opsional saat Website Online):</strong> Tempelkan URL <em>Google Apps Script Web App</em> atau <em>Formspree / Make.com Webhook</em> di bawah ini agar setiap pendaftar dari HP/komputer mana pun langsung masuk ke Google Sheets Anda secara real-time.
+        </li>
+      </ol>
+
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label for="webhookUrlInput">URL Webhook Google Sheets / API Endpoint (Opsional)</label>
+        <input
+          type="url"
+          id="webhookUrlInput"
+          class="form-control"
+          placeholder="https://script.google.com/macros/s/AKfycb.../exec"
+        />
+        <small style="display: block; margin-top: 0.35rem; font-size: 0.76rem; color: var(--text-muted);">
+          Jika diisi, setiap submit di <code>booking.html</code> otomatis mengirimkan JSON data pendaftar ke URL ini.
+        </small>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button type="button" id="saveWebhookBtn" class="btn btn-primary btn-sm">Simpan Konfigurasi</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Modal Input Booking Manual oleh Admin -->
+  <dialog class="modal-dialog" id="manualAddModal">
+    <div class="modal-body">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <span class="eyebrow" style="margin-bottom: 0;">Input Admin Walk-In / Telepon</span>
+        <button type="button" id="closeManualAddModalBtn" class="cal-nav-btn">✕</button>
+      </div>
+
+      <h3 style="font-family: var(--font-serif); font-size: 1.8rem; margin-bottom: 1rem;">
+        Tambah Data Pendaftar Baru
+      </h3>
+
+      <form id="adminManualAddForm" class="quick-form-grid">
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="manualName">Nama Pemesan *</label>
+            <input type="text" id="manualName" class="form-control" placeholder="Contoh: Rina & Fajar" required />
+          </div>
+          <div class="form-group">
+            <label for="manualPhone">No. WhatsApp *</label>
+            <input type="tel" id="manualPhone" class="form-control" placeholder="0812..." required />
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="manualCategory">Kategori</label>
+            <select id="manualCategory" class="form-control">
+              <option value="Wedding & Private Event">Wedding &amp; Private Event</option>
+              <option value="Reservasi Meja Eatery Harian">Reservasi Meja Eatery Harian</option>
+              <option value="Survey Lokasi & Food Tasting">Survey Lokasi &amp; Food Tasting</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="manualStatus">Status Awal</label>
+            <select id="manualStatus" class="form-control">
+              <option value="Confirmed">✅ Confirmed (DP Masuk)</option>
+              <option value="Pending">⏳ Menunggu Konfirmasi</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="manualPackage">Nama Paket / Layanan</label>
+          <input type="text" id="manualPackage" class="form-control" value="Paket Royal Garden All-In (500–600 Pax)" required />
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="manualDate">Tanggal Acara *</label>
+            <input type="date" id="manualDate" class="form-control" value="2026-12-20" required />
+          </div>
+          <div class="form-group">
+            <label for="manualSession">Sesi Waktu</label>
+            <input type="text" id="manualSession" class="form-control" value="Sesi Pagi / Siang (08.00 – 14.00 WIB)" required />
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="manualGuests">Jumlah Tamu (Pax)</label>
+            <input type="number" id="manualGuests" class="form-control" value="500" min="1" required />
+          </div>
+          <div class="form-group">
+            <label for="manualTotal">Total Biaya (Rp)</label>
+            <input type="number" id="manualTotal" class="form-control" value="79000000" min="0" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="manualNotes">Catatan Admin</label>
+          <input type="text" id="manualNotes" class="form-control" placeholder="DP Rp 10 Jt via Transfer BCA..." />
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+          Simpan ke Database Pendaftar
+        </button>
+      </form>
+    </div>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
